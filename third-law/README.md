@@ -7,3 +7,4 @@ Requires
 - Support for C++20 features
 - [entt](https://github.com/skypjack/entt)
 - [Box2D](https://github.com/erincatto/Box2D)
+- [SFML](https://github.com/SFML/SFML)
