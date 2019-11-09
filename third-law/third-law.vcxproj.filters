@@ -4,10 +4,18 @@
     <Filter Include="src">
       <UniqueIdentifier>{2f42fb93-cb87-4194-97fc-d3e6e5abd3a4}</UniqueIdentifier>
     </Filter>
+    <Filter Include="resources">
+      <UniqueIdentifier>{8c6334a6-c05b-4254-8caa-273761ad9283}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp">
       <Filter>src</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="resources\test.png">
+      <Filter>resources</Filter>
+    </Image>
   </ItemGroup>
 </Project>
