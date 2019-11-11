@@ -18,4 +18,9 @@
       <Filter>resources</Filter>
     </Image>
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\body.hpp">
+      <Filter>src</Filter>
+    </ClInclude>
+  </ItemGroup>
 </Project>

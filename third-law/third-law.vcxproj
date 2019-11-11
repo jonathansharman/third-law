@@ -24,6 +24,9 @@
   <ItemGroup>
     <Image Include="resources\test.png" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\body.hpp" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <ProjectGuid>{7103D090-DA97-4E95-B2E9-05E3B4B00E09}</ProjectGuid>

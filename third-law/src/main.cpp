@@ -10,44 +10,58 @@
 #include <fstream>
 #include <thread>
 
+#include "body.hpp"
+
+auto apply_view(sf::RenderWindow& window, sf::Vector2f const& position, float scale) -> void {
+	auto const window_size = window.getSize();
+	sf::Vector2f const view_center{(position.x) / scale, (position.y) / scale};
+	sf::Vector2f const view_size{window_size.x / scale, window_size.y / scale};
+	window.setView({view_center, view_size});
+}
+
 auto main() -> int {
+	constexpr int dflt_x_res = 800;
+	constexpr int dflt_y_res = 600;
+
 	constexpr float32 time_step = 1.0f / 60.0f;
 	constexpr auto frame_duration = std::chrono::duration<float>(time_step);
 
-	sf::RenderWindow window{sf::VideoMode{800, 600}, "Third Law", sf::Style::Default};
+	sf::RenderWindow window{sf::VideoMode{dflt_x_res, dflt_y_res}, "Third Law", sf::Style::Default};
 	window.setKeyRepeatEnabled(false);
 
-	b2Vec2 const gravity{0.0f, -0.05f};
+	constexpr float view_scale = 4;
+	sf::Vector2f view_position{0, 0};
+
+	b2Vec2 const gravity{0, -0.05f};
 	b2World world{gravity};
 
-	b2BodyDef ground_body_def;
-	ground_body_def.position.Set(0.0f, -10.0f);
-	b2Body* ground_body = world.CreateBody(&ground_body_def);
-	b2PolygonShape ground_box;
-	ground_box.SetAsBox(50.0f, 10.0f);
-	ground_body->CreateFixture(&ground_box, 0.0f);
+	// Define ground body.
+	law3::body ground_body{&world, b2BodyType::b2_staticBody, {0, -10}};
+	b2PolygonShape ground_shape;
+	ground_shape.SetAsBox(50, 10, {0, 0}, b2_pi / 16);
+	b2FixtureDef ground_fixture_def;
+	ground_fixture_def.shape = &ground_shape;
+	ground_body.create_fixture(&ground_fixture_def);
 
-	b2BodyDef ball_body_def;
-	ball_body_def.type = b2_dynamicBody;
-	ball_body_def.position.Set(0.0f, 4.0f);
-	b2Body* ball_body = world.CreateBody(&ball_body_def);
-	b2CircleShape ball;
-	ball.m_radius = 1.0f;
-
+	// Define ball body.
+	law3::body ball_body{&world, b2BodyType::b2_dynamicBody, {0, 4}};
 	b2FixtureDef fixture_def;
-	fixture_def.shape = &ball;
-	fixture_def.density = 1.0f;
+	b2CircleShape ball_shape;
+	ball_shape.m_radius = 1;
+	fixture_def.shape = &ball_shape;
+	fixture_def.density = 1;
 	fixture_def.friction = 0.1f;
-	ball_body->CreateFixture(&fixture_def);
+	fixture_def.restitution = 0.5f;
+	ball_body.create_fixture(&fixture_def);
 
-	constexpr float scale = 15.0f;
 	// Ground body graphics.
-	sf::RectangleShape ground_sfml_shape{{100.0f * scale, 20.0f * scale}};
-	ground_sfml_shape.setOrigin(50.0f * scale, 10.0f * scale);
-	ground_sfml_shape.setPosition({400.0f, 300.0f - -10.0f * scale});
+	sf::RectangleShape ground_sfml_shape{{100, 20}};
+	ground_sfml_shape.setOrigin(50, 10);
+	ground_sfml_shape.setPosition({0, 10});
+	ground_sfml_shape.setRotation(-180.0f / 16);
 	// Dynamic body graphics.
-	sf::CircleShape ball_sfml_shape{1.0f * scale};
-	ball_sfml_shape.setOrigin(1.0f * scale, 1.0f * scale);
+	sf::CircleShape ball_sfml_shape{1};
+	ball_sfml_shape.setOrigin(1, 1);
 	sf::Texture texture;
 	texture.loadFromFile("resources/test.png");
 	ball_sfml_shape.setTexture(&texture);
@@ -62,27 +76,30 @@ auto main() -> int {
 				case sf::Event::Closed:
 					running = false;
 					break;
-				case sf::Event::KeyPressed:
-					switch (e.key.code) {
-						case sf::Keyboard::Up: {
-							b2Vec2 const force{0.0f, 200.0f};
-							ball_body->ApplyForceToCenter(force, true);
-							break;
-						}
-					}
-					break;
 			}
 		}
+		// Apply central forces.
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up)) {
+			b2Vec2 const force{0, 0.3f};
+			ball_body.apply_force_to_center(force);
+		}
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) {
-			b2Vec2 const force{-0.1f, 0.0f};
-			ball_body->ApplyForceToCenter(force, true);
+			b2Vec2 const force{-0.1f, 0};
+			ball_body.apply_force_to_center(force);
 		}
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) {
-			b2Vec2 const force{0.1f, 0.0f};
-			ball_body->ApplyForceToCenter(force, true);
+			b2Vec2 const force{0.1f, 0};
+			ball_body.apply_force_to_center(force);
 		}
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Q)) { ball_body->ApplyTorque(0.15f, true); }
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::E)) { ball_body->ApplyTorque(-0.15f, true); }
+		// Apply torque.
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Num1)) { ball_body.apply_torque(0.15f); }
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Num2)) { ball_body.apply_torque(-0.15f); }
+		// Camera controls.
+		constexpr float pan_speed = 0.1f;
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::W)) { view_position.y -= pan_speed; }
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::S)) { view_position.y += pan_speed; }
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::A)) { view_position.x -= pan_speed; }
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::D)) { view_position.x += pan_speed; }
 
 		// Update world.
 		constexpr int32 velocity_iterations = 8;
@@ -91,13 +108,14 @@ auto main() -> int {
 
 		// Draw.
 		window.clear();
+		apply_view(window, view_position, view_scale);
 		// Draw ground body.
 		window.draw(ground_sfml_shape);
 		{ // Draw dynamic body.
-			b2Vec2 position = ball_body->GetPosition();
-			ball_sfml_shape.setPosition(400.0f + position.x * scale, 300.0f - position.y * scale);
-			float const angle = ball_body->GetAngle();
-			ball_sfml_shape.setRotation(angle * -180.0f / b2_pi);
+			b2Vec2 position = ball_body.position();
+			ball_sfml_shape.setPosition(position.x, -position.y);
+			float const angle = ball_body.angle();
+			ball_sfml_shape.setRotation(angle * -180 / b2_pi);
 			window.draw(ball_sfml_shape);
 		}
 		window.display();
