@@ -12,6 +12,9 @@
     <ClCompile Include="src\main.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="src\body.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Image Include="resources\test.png">
@@ -20,6 +23,15 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\body.hpp">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\camera.hpp">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\circle_animation.hpp">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\polygon_animation.hpp">
       <Filter>src</Filter>
     </ClInclude>
   </ItemGroup>

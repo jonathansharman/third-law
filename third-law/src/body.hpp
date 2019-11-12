@@ -4,44 +4,38 @@
 #pragma once
 
 #include <Box2D/Box2D.h>
+#include <boost/units/unit.hpp>
+#include <entt/entt.hpp>
+
+#include <memory>
 
 namespace law3 {
 	//! Box2D body wrapper type with more idiomatic C++.
 	struct body {
+		entt::entity id;
 		b2World* world;
 
-		body(b2World* world, b2BodyType type, b2Vec2 position) : world{world} {
-			b2BodyDef def;
-			def.type = type;
-			def.position = position;
-			_body = world->CreateBody(&def);
-		}
+		body(entt::entity id, b2World* world, b2BodyType type, b2Vec2 position);
 
-		~body() noexcept {
-			world->DestroyBody(_body);
-		}
+		auto create_fixture(b2FixtureDef* fixture_def) -> void;
 
-		auto create_fixture(b2FixtureDef* fixture_def) {
-			_body->CreateFixture(fixture_def);
-		}
+		auto position() const -> b2Vec2;
 
-		auto position() const {
-			return _body->GetPosition();
-		}
+		auto angle() const -> float;
 
-		auto angle() const {
-			return _body->GetAngle();
-		}
+		auto fixture() -> b2Fixture*;
+		auto fixture() const -> b2Fixture const*;
 
-		auto apply_force_to_center(b2Vec2 const& force) {
-			_body->ApplyForceToCenter(force, true);
-		}
+		auto apply_force_to_center(b2Vec2 const& force) -> void;
 
-		auto apply_torque(float const& torque) {
-			_body->ApplyTorque(torque, true);
-		}
+		auto apply_torque(float const& torque) -> void;
 
 	private:
-		b2Body* _body;
+		struct deleter {
+			b2World* world;
+			auto operator()(b2Body* body) -> void;
+		};
+
+		std::unique_ptr<b2Body, deleter> _body;
 	};
 }
