@@ -16,7 +16,7 @@
 #include <thread>
 
 auto main() -> int {
-	constexpr auto frame_duration = std::chrono::duration<float>(1.0f / 60.0f);
+	constexpr auto frame_duration = std::chrono::duration<float>(1.0f / 10.0f);
 
 	// entt setup
 	entt::registry reg;
@@ -59,7 +59,7 @@ auto main() -> int {
 
 	// Add balls.
 	std::vector<entt::entity> ball_ids;
-	for (int i = 0; i < 50; ++i) {
+	for (int i = 0; i < 20; ++i) {
 		ball_ids.push_back(reg.create());
 		auto& ball_body = reg.assign<law3::body>(
 			ball_ids.back(), ball_ids.back(), &world, b2BodyType::b2_dynamicBody, b2Vec2{0, 4});
@@ -134,13 +134,5 @@ auto main() -> int {
 		// Draw circle shapes.
 		reg.view<law3::circle_animation>().each([&](auto const& animation) { window.draw(animation); });
 		window.display();
-
-		// Do timing.
-		auto now = std::chrono::steady_clock::now();
-		auto elapsed = now - last_update;
-		last_update = now;
-		if (std::chrono::duration_cast<std::chrono::milliseconds>(elapsed) < frame_duration) {
-			std::this_thread::sleep_for(frame_duration - elapsed);
-		}
 	}
 }
